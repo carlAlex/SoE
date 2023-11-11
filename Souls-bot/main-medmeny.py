@@ -5,6 +5,8 @@ import tkinter as tk
 from tkinter import ttk
 from threading import Thread
 
+### hei ###
+
 class AutoClickerApp:
     def __init__(self, root):
         self.root = root
