@@ -1,6 +1,7 @@
 import pyautogui
 import time
 
+#### Denne progressbaren fungerer! KAN NÅ LEGGE TIL PYAUTOGUI HVIS PROSENT STEMMER, TRYKK PÅ KNAPP "F?" LAGE RUNE ####
 def get_progress_percentage(region, target_color):
     screenshot = pyautogui.screenshot(region=region)
     width, height = screenshot.size
