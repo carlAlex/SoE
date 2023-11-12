@@ -181,7 +181,7 @@ class WindowCapture:
 # Bruk funksjonen over til å finne 100% navnet på vinduet.. Som du ser MÅ navnen på character
 # være med. Men det finner du med å kommentere bort alt dette og bare kjøre koden over.
 
-wc = WindowCapture('Souls Of Elysium - Verynoob')
+wc = WindowCapture('Souls Of Elysium - BRUKERNAVN')
 
 # NOTE: Begge disse fungerer for å ta screenshot av vinduet.
 
