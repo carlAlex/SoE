@@ -43,6 +43,30 @@ class Detection:
         self.screenshot = screenshot
         self.lock.release()
 
+    def find_all_needles(self):
+        """
+        !!UNTESTED CODE!!
+        Check if the current screenshot contains the needle_image.
+        """
+        img = cv.imread(self.FIND_THIS_IMAGE)
+        scrSh = np.array(self.screenshot)
+        result = cv.matchTemplate(scrSh, img, cv.TM_CCOEFF_NORMED)
+        
+        # Apply threshold to result
+        threshold = self.IMAGE_MATCH_THRESHOLD
+        loc = np.where(result >= threshold)
+        
+        # Iterate over the matches
+        for pt in zip(*loc[::-1]):
+            print('Image found at {}'.format(pt))
+            self.needle_point = pt
+
+        if len(loc[0]) > 0:
+            return True
+        else:
+            print('Image not found.')
+            return False
+
     def find_needle(self):
         """
         Check if the current screenshot contains the needle_image.
@@ -181,7 +205,7 @@ class WindowCapture:
 # Bruk funksjonen over til å finne 100% navnet på vinduet.. Som du ser MÅ navnen på character
 # være med. Men det finner du med å kommentere bort alt dette og bare kjøre koden over.
 
-wc = WindowCapture('Souls Of Elysium - BRUKERNAVN')
+# wc = WindowCapture('Souls Of Elysium - Verynoob')
 
 # NOTE: Begge disse fungerer for å ta screenshot av vinduet.
 
@@ -193,13 +217,13 @@ wc = WindowCapture('Souls Of Elysium - BRUKERNAVN')
 # image = wc.get_mss_screenshot()
 # cv.imwrite('SoE\img\get_mss_screenshot.png', image)
 
-det = Detection()
-det.update(wc.get_screenshot())
-if det.find_needle():
-    print('Found!')
-    game_win_x = wc.offset_x
-    game_win_y = wc.offset_y
-    # move mouse with pyautogui to the center of the needle image
-    pyautogui.moveTo(game_win_x + det.needle_point[0], game_win_y + det.needle_point[1])
-else:
-    print('Not found!')
+# det = Detection()
+# det.update(wc.get_screenshot())
+# if det.find_needle():
+#     print('Found!')
+#     game_win_x = wc.offset_x
+#     game_win_y = wc.offset_y
+#     # move mouse with pyautogui to the center of the needle image
+#     pyautogui.moveTo(game_win_x + det.needle_point[0], game_win_y + det.needle_point[1])
+# else:
+#     print('Not found!')
