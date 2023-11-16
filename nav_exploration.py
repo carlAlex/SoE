@@ -41,8 +41,9 @@ def get_battlewindow_health(region, step=1):
 
     return 0.0
 
-def bw_has_names(region):
+def bw_entity_state(region):
     x, y, width, height = region
+    ent_in_battlewindow = 0
 
     for i in range(0, 10):
         region = (x, y + (i * 25), width, height)
@@ -53,26 +54,52 @@ def bw_has_names(region):
         # print(f'Looking for entity at slot {i}')
         for pix in range(width):
             if not entity_found:
+                # Looks where the name is. If it finds gray letters...
                 r, g, b = screenshot.getpixel((pix, 0))
                 if r == 136 and g == 136 and b == 136:
-                    print(f'  **Entity FOUND at slot {i}')
+                    # print(f'  **Entity FOUND at slot {i}')
+                    ent_in_battlewindow += 1
                     entity_found = True
         if not entity_found:
-            print(f'  **No entity found at slot {i}')
+            #print(f'  **No entity found at slot {i}')
+            pass
+    return ent_in_battlewindow
         
-                        
+
+# Farm spiders script
+# Player starts at base of stairs
+# Player walks up stairs
+# Spiders move towards player, get_battlewindow_health() is called
+# If health value is found, attack by right clicking and choosing attack
+# At approx 40% health, the spiders run away
+# loop while health found is not 0:
+#   Right click and choose "follow"
+#   Monitor player position, if still for over 1 second, attack again
+# Look for dead spiders
+# Right click dead spider
+# Hover mouse over loot slot, see if "Gold coin" is found
+# If found, drag coin to inventory
+# If not found, drag corpse to inventory
+# Click OK button if required
+# Close loot window
+# Drag corpse to inventory
+# Click flower to move to it
+# Walk back down stairs and move away
+# Drop corpses
+# Repeat
 
 # If there is a name above the health bar, rgb(136, 136, 136)
 # the names start at 1313, 130(155 etc + 25)
-region_entity_start = (1313, 130, 60, 1)
-bw_has_names(region_entity_start)
+# region_entity_start = (1313, 130, 60, 1)
+# alive_in_window = bw_entity_state(region_entity_start)
+# print(f'Alive in window: {alive_in_window}')
 
 # The first bar is at (1313, 145) and is 138 pixels wide
 # 145, 170, 195
-# region_health = (1313, 145, 138, 1)
-# for i in range(15):
-#     print(get_battlewindow_health(region_health))
-#     time.sleep(1)
+region_health = (1313, 145, 138, 1)
+for i in range(15):
+    print(get_battlewindow_health(region_health))
+    time.sleep(1)
 
 # wc = WindowCapture('Souls Of Elysium - BRUKERNAVN')
 # Uncomment denne for å ta screenshot med win32gui
