@@ -23,8 +23,8 @@ class Detection:
     called before find_needle() is called.
     '''
     # constants
-    IMAGE_MATCH_THRESHOLD = 0.72
-    FIND_THIS_IMAGE = 'SoE\\img\\food_cheese.png'
+    IMAGE_MATCH_THRESHOLD = 0.5
+    # FIND_THIS_IMAGE = 'SoE\\img\\spider left.png'
 
     # threading properties
     lock = None
@@ -36,12 +36,23 @@ class Detection:
     def __init__(self, model_file_path: str=""):
         # create a thread lock object
         self.lock = Lock()
+        self.FIND_THIS_IMAGE = 'SoE\\img\\spider left.png'
         self.needle_image = cv.imread(self.FIND_THIS_IMAGE, cv.IMREAD_UNCHANGED)
 
     def update(self, screenshot):
         self.lock.acquire()
         self.screenshot = screenshot
         self.lock.release()
+
+    def set_needle_image(self, image_path):
+        self.lock.acquire()
+        self.needle_image = cv.imread(image_path, cv.IMREAD_UNCHANGED)
+        self.lock.release()
+
+    def needle_padding(self):
+        x = self.needle_image.shape[0] // 2
+        y = self.needle_image.shape[1] // 2
+        return x, y
 
     def find_all_needles(self):
         """
@@ -224,6 +235,16 @@ class WindowCapture:
 #     game_win_x = wc.offset_x
 #     game_win_y = wc.offset_y
 #     # move mouse with pyautogui to the center of the needle image
-#     pyautogui.moveTo(game_win_x + det.needle_point[0], game_win_y + det.needle_point[1])
+
+#     # Load the image
+#     img = cv.imread(det.FIND_THIS_IMAGE)
+
+#     # Calculate the center pixel
+#     height, width, _ = img.shape
+#     center_x = width // 2
+#     center_y = height // 2
+#     pyautogui.moveTo(game_win_x + det.needle_point[0] + 
+#                      center_x, game_win_y + det.needle_point[1]
+#                        + center_y)
 # else:
-#     print('Not found!')
+#         print('Not found!')

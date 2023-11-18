@@ -6,6 +6,10 @@ from threading import Thread, Lock
 import pyautogui
 from find_food_test import WindowCapture, Detection
 import time
+import dxcam
+import pyautogui
+from pynput.keyboard import Controller, Key
+
 
 def get_progress_percentage(region, target_color, step=1):
     screenshot = pyautogui.screenshot(region=region)
@@ -25,7 +29,7 @@ def get_progress_percentage(region, target_color, step=1):
 def get_battlewindow_health(region, step=1):
     screenshot = pyautogui.screenshot(region=region)
     width, height = screenshot.size
-    print(f"width: {width}, height: {height}")
+    # print(f"width: {width}, height: {height}")
 
     if width == 0 or height == 0:
         return 0.0
@@ -36,7 +40,7 @@ def get_battlewindow_health(region, step=1):
         if (60 <= r <= 90) and (60 <= g <= 90) and (60 <= b <= 90):  # Check if the pixel is gray
             gray_pixels -= 1
         else:
-            print(f'Pixel color: {r, g, b}')
+            # print(f'Pixel color: {r, g, b}')
             return (gray_pixels / width) * 100
 
     return 0.0
@@ -64,55 +68,93 @@ def bw_entity_state(region):
             #print(f'  **No entity found at slot {i}')
             pass
     return ent_in_battlewindow
-        
 
-# Farm spiders script
-# Player starts at base of stairs
-# Player walks up stairs
-# Spiders move towards player, get_battlewindow_health() is called
-# If health value is found, attack by right clicking and choosing attack
-# At approx 40% health, the spiders run away
-# loop while health found is not 0:
-#   Right click and choose "follow"
-#   Monitor player position, if still for over 1 second, attack again
-# Look for dead spiders
-# Right click dead spider
-# Hover mouse over loot slot, see if "Gold coin" is found
-# If found, drag coin to inventory
-# If not found, drag corpse to inventory
-# Click OK button if required
-# Close loot window
-# Drag corpse to inventory
-# Click flower to move to it
-# Walk back down stairs and move away
-# Drop corpses
-# Repeat
+def click_food_if_req():
+    region = (2375, 184, 174, 1)
+    target_color = (255, 68, 68)
+    percentage = get_progress_percentage(region, target_color)
+    print(f"Health: {percentage:.2f}%")
+    if percentage < 85.0:
+        print("Health: **LOW** Eating food..")
+        pyautogui.moveTo(2421, 483)
+        pyautogui.click(button='right')
+        time.sleep(0.1)
 
-# If there is a name above the health bar, rgb(136, 136, 136)
-# the names start at 1313, 130(155 etc + 25)
-# region_entity_start = (1313, 130, 60, 1)
-# alive_in_window = bw_entity_state(region_entity_start)
-# print(f'Alive in window: {alive_in_window}')
+# using pynput because SoE did not like pyautogui
+keyboard = Controller()
+print("waiting..")
+time.sleep(2)
+print("move to spiders..")
 
-# The first bar is at (1313, 145) and is 138 pixels wide
-# 145, 170, 195
-region_health = (1313, 145, 138, 1)
-for i in range(15):
-    print(get_battlewindow_health(region_health))
+# Farm spiders script - SETUP:
+BW_MENU_CLICK = (1296, 138)
+ATTACK_CLICK_OFFS = (20, 20)
+FOLLOW_CLICK_OFFS = (20, 40)
+
+camera = dxcam.create()  # returns a DXCamera instance on primary monitor
+left, top = 2372, 36
+right, bottom = 2550, 175
+region = (left, top, right, bottom)
+
+for _ in range(3):
+    # Player starts at base of stairs
+    # Player walks up stairs
+    print("Walking up stairs..")
+    for _ in range(5):
+        keyboard.press(Key.right)
+        keyboard.release(Key.right)
+        time.sleep(0.5)
+    # wait for player to move
+    time.sleep(1.5)
+    # Spiders move towards player, get_battlewindow_health() is called
+    region_health = (1313, 145, 138, 1)
+    health = get_battlewindow_health(region_health) 
+    while health > 0.0:
+        click_food_if_req()
+        print("**ATTACKING spiders..")
+        keyboard.press(Key.f1)
+        keyboard.release(Key.f1)
+        time.sleep(3)
+        pyautogui.moveTo(x=BW_MENU_CLICK[0], y=BW_MENU_CLICK[1])
+        pyautogui.click(button='right')
+        time.sleep(0.1)
+        print("FOLLOWING spiders..")
+        pyautogui.moveTo(x=BW_MENU_CLICK[0] + FOLLOW_CLICK_OFFS[0], y=BW_MENU_CLICK[1] + FOLLOW_CLICK_OFFS[1])
+        pyautogui.click(button='left')
+        time.sleep(2)
+        health = get_battlewindow_health(region_health)
+    # Wait in case player still moving
+    print("All dead, waiting to find the stairs..")
     time.sleep(1)
+    # Right click dead spider
+    det = Detection()
+    det.set_needle_image('SoE\\img\\dn_arrow.png')
 
-# wc = WindowCapture('Souls Of Elysium - BRUKERNAVN')
-# Uncomment denne for å ta screenshot med win32gui
-# image = wc.get_screenshot()
-# cv.imwrite('SoE\img\get_screenshot.png', image)
-
-# det = Detection()
-# det.update(wc.get_screenshot())
-# if det.find_needle():
-#     print('Found!')
-#     game_win_x = wc.offset_x
-#     game_win_y = wc.offset_y
-#     # move mouse with pyautogui to the center of the needle image
-#     pyautogui.moveTo(game_win_x + det.needle_point[0], game_win_y + det.needle_point[1])
-# else:
-#     print('Not found!')
+    
+    frame = camera.grab(region=region)
+    det.update(frame)
+    if det.find_needle():
+        print('Found!')
+        pyautogui.moveTo(left + det.needle_point[0] + 5, top + det.needle_point[1] - 26)
+        pyautogui.click(button='left')
+        print("**WALKING to stairs..")
+        time.sleep(7.5)
+        print("Resetting position..")
+        for _ in range(6):
+            keyboard.press(Key.left)
+            keyboard.release(Key.left)
+            time.sleep(0.6)
+        print("Give spiders some time to respawn..")
+        time.sleep(3)
+    else:
+        print('Not found!')
+    # Hover mouse over loot slot, see if "Gold coin" is found
+    # If found, drag coin to inventory
+    # If not found, right click again to close loot dlg, drag corpse to inventory
+    # Click OK button if required
+    # Close loot window
+    # Drag corpse to inventory
+    # Click flower to move to it
+    # Walk back down stairs and move away
+    # Drop corpses
+    # Repeat
